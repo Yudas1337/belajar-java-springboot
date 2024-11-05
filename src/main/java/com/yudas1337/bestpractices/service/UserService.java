@@ -4,50 +4,49 @@ import com.yudas1337.bestpractices.entity.User;
 import com.yudas1337.bestpractices.repository.UserRepository;
 import com.yudas1337.bestpractices.request.RegisterUserRequest;
 import com.yudas1337.bestpractices.security.BCrypt;
+import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
-import jakarta.validation.ConstraintViolation;
-import jakarta.validation.ConstraintViolationException;
-import jakarta.validation.Validator;
-import org.springframework.http.HttpStatus;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
-import java.util.Set;
 
 @Service
 public class UserService {
 
-    private final UserRepository userRepository;
+    @Autowired
+    private UserRepository userRepository;
 
-    private final Validator validator;
-
-    public UserService(UserRepository userRepository, Validator validator) {
-        this.userRepository = userRepository;
-        this.validator = validator;
+    public List<User> findAll() {
+        return userRepository.findAll();
     }
 
     @Transactional
-    public User register(RegisterUserRequest request) {
-        Set<ConstraintViolation<RegisterUserRequest>> violations = validator.validate(request);
-
-        if (!violations.isEmpty()) {
-            throw new ConstraintViolationException(violations);
-        }
-
-        if (userRepository.existsById(request.getUsername())) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Username already registered");
-        }
-
+    public void save(RegisterUserRequest request) {
         User user = new User();
         user.setUsername(request.getUsername());
         user.setPassword(BCrypt.hashpw(request.getPassword(), BCrypt.gensalt()));
         user.setName(request.getName());
 
-        return userRepository.save(user);
+        userRepository.save(user);
     }
 
-    public List<User> findAll() {
-        return userRepository.findAll();
+    @Transactional
+    public void update(Long id, RegisterUserRequest request) {
+        User user = userRepository.findById(id).orElseThrow();
+        user.setUsername(request.getUsername());
+        user.setPassword(BCrypt.hashpw(request.getPassword(), BCrypt.gensalt()));
+        user.setName(request.getName());
+        userRepository.save(user);
     }
+
+    @Transactional
+    public void delete(Long id) {
+        if (!userRepository.existsById(id))
+            throw new EntityNotFoundException("User not found or data already deleted.");
+
+        userRepository.deleteById(id);
+    }
+
+
 }

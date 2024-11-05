@@ -29,6 +29,10 @@ public class User {
 
     private String token;
 
+//    @CreationTimestamp
+//    @Column(nullable = false, updatable = false, name = "created_at")
+//    private LocalDateTime createdAt;
+
     @Column(name = "token_expired_at")
     private Long tokenExpiredAt;
 

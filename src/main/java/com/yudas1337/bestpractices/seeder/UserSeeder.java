@@ -23,13 +23,14 @@ public class UserSeeder {
         Faker faker = new Faker(new Locale("in-ID"));
         for (int i = 0; i < 100; i++) {
 
-            if (userRepository.existsById(String.valueOf(i + 1))) {
+            String username = "User-" + i;
+            if (userRepository.existsByUsername(username)) {
                 break;
             }
 
             User user = new User();
             user.setName(faker.name().fullName());
-            user.setUsername("User-" + i);
+            user.setUsername(username);
             user.setPassword(BCrypt.hashpw(faker.internet().password(), BCrypt.gensalt()));
             user.setToken(faker.internet().password());
             user.setTokenExpiredAt((long) faker.number().randomDigit());
